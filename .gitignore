@@ -30,3 +30,5 @@ captures/
 navigation/
 /*/build/
 */.cxx/
+gradle.zip
+gradle-8.5/
