@@ -13,17 +13,17 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Setup Gradle
+        run: |
+          curl -sL https://services.gradle.org/distributions/gradle-8.5-bin.zip -o /tmp/gradle.zip
+          unzip -q /tmp/gradle.zip -d /opt
+          ln -s /opt/gradle-8.5/bin/gradle /usr/local/bin/gradle
+
       - name: Build debug APK
         run: |
           cd $GITHUB_WORKSPACE
-          if [ -f gradlew ]; then
-            ./gradlew assembleDebug --no-daemon
-          else
-            curl -sL https://services.gradle.org/distributions/gradle-8.5-bin.zip -o /tmp/gradle.zip
-            unzip -q /tmp/gradle.zip -d /opt
-            /opt/gradle-8.5/bin/gradle wrapper --gradle-version 8.5
-            ./gradlew assembleDebug --no-daemon
-          fi
+          gradle wrapper --gradle-version 8.5
+          ./gradlew assembleDebug --no-daemon
 
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
