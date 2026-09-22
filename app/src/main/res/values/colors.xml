@@ -1,5 +1,24 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <color name="background">#1C1C1E</color>
+    <color name="display_text">#FFFFFF</color>
+    <color name="expression_text">#8E8E93</color>
+
+    <!-- Number buttons -->
+    <color name="number_button">#2C2C2E</color>
+    <color name="number_button_text">#FFFFFF</color>
+
+    <!-- Operator buttons -->
+    <color name="operator_button">#FF9F0A</color>
+    <color name="operator_button_text">#FFFFFF</color>
+
+    <!-- Equals button -->
+    <color name="equals_button">#30D158</color>
+    <color name="equals_button_text">#FFFFFF</color>
+
+    <!-- Ripple -->
+    <color name="ripple_color">#33FFFFFF</color>
+
     <color name="operator_color">#FF7A00</color>
     <color name="function_color">#B0BEC5</color>
     <color name="equals_color">#00C853</color>

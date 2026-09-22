@@ -1,85 +1,66 @@
 package com.example.calculator
 
 import android.os.Bundle
-import android.view.View
+import android.widget.Button
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
-import com.google.android.material.button.MaterialButton
+import com.example.calculator.databinding.ActivityMainBinding
+import java.text.DecimalFormat
 
 class MainActivity : AppCompatActivity() {
 
-    private lateinit var tvDisplay: TextView
-    private lateinit var tvExpression: TextView
+    private lateinit var binding: ActivityMainBinding
 
     private var currentInput = "0"
     private var firstOperand: Double? = null
     private var currentOperator: String? = null
     private var isNewInput = true
-    private var lastOperand: Double? = null
-    private var lastOperator: String? = null
-    private var justEvaluated = false
+
+    private val decimalFormat = DecimalFormat("#.##########")
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
+        binding = ActivityMainBinding.inflate(layoutInflater)
+        setContentView(binding.root)
 
-        tvDisplay = findViewById(R.id.tvDisplay)
-        tvExpression = findViewById(R.id.tvExpression)
-
-        // Digit buttons
-        val digitIds = mapOf(
-            R.id.btn0 to "0", R.id.btn1 to "1", R.id.btn2 to "2",
-            R.id.btn3 to "3", R.id.btn4 to "4", R.id.btn5 to "5",
-            R.id.btn6 to "6", R.id.btn7 to "7", R.id.btn8 to "8",
-            R.id.btn9 to "9"
-        )
-
-        digitIds.forEach { (id, digit) ->
-            findViewById<MaterialButton>(id).setOnClickListener {
-                onDigitPressed(digit)
-            }
-        }
-
-        findViewById<MaterialButton>(R.id.btnDecimal).setOnClickListener { onDecimalPressed() }
-        findViewById<MaterialButton>(R.id.btnClear).setOnClickListener { onClearPressed() }
-        findViewById<MaterialButton>(R.id.btnSign).setOnClickListener { onSignPressed() }
-        findViewById<MaterialButton>(R.id.btnPercent).setOnClickListener { onPercentPressed() }
-
-        findViewById<MaterialButton>(R.id.btnAdd).setOnClickListener { onOperatorPressed("+") }
-        findViewById<MaterialButton>(R.id.btnSubtract).setOnClickListener { onOperatorPressed("-") }
-        findViewById<MaterialButton>(R.id.btnMultiply).setOnClickListener { onOperatorPressed("×") }
-        findViewById<MaterialButton>(R.id.btnDivide).setOnClickListener { onOperatorPressed("÷") }
-
-        findViewById<MaterialButton>(R.id.btnEquals).setOnClickListener { onEqualsPressed() }
-
+        setupClickListeners()
         updateDisplay()
     }
 
-    private fun onDigitPressed(digit: String) {
-        if (justEvaluated) {
-            currentInput = digit
-            justEvaluated = false
-            isNewInput = false
-        } else if (isNewInput) {
-            currentInput = digit
+    private fun setupClickListeners() {
+        // Numbers
+        val numberButtons = listOf(
+            binding.btn0, binding.btn1, binding.btn2, binding.btn3, binding.btn4,
+            binding.btn5, binding.btn6, binding.btn7, binding.btn8, binding.btn9
+        )
+        numberButtons.forEach { button ->
+            button.setOnClickListener { onNumberClick((it as Button).text.toString()) }
+        }
+
+        // Operators
+        binding.btnAdd.setOnClickListener { onOperatorClick("+") }
+        binding.btnSubtract.setOnClickListener { onOperatorClick("−") }
+        binding.btnMultiply.setOnClickListener { onOperatorClick("×") }
+        binding.btnDivide.setOnClickListener { onOperatorClick("÷") }
+
+        // Other
+        binding.btnEquals.setOnClickListener { onEqualsClick() }
+        binding.btnClear.setOnClickListener { onClearClick() }
+        binding.btnDecimal.setOnClickListener { onDecimalClick() }
+    }
+
+    private fun onNumberClick(number: String) {
+        if (isNewInput) {
+            currentInput = number
             isNewInput = false
         } else {
-            if (currentInput == "0") {
-                currentInput = digit
-            } else {
-                currentInput += digit
-            }
+            currentInput = if (currentInput == "0") number else currentInput + number
         }
-        lastOperator = null
         updateDisplay()
     }
 
-    private fun onDecimalPressed() {
-        if (justEvaluated) {
-            currentInput = "0."
-            justEvaluated = false
-            isNewInput = false
-        } else if (isNewInput) {
+    private fun onDecimalClick() {
+        if (isNewInput) {
             currentInput = "0."
             isNewInput = false
         } else if (!currentInput.contains(".")) {
@@ -88,97 +69,84 @@ class MainActivity : AppCompatActivity() {
         updateDisplay()
     }
 
-    private fun onClearPressed() {
+    private fun onOperatorClick(operator: String) {
+        // If user presses operator right after another operator, replace it
+        if (isNewInput && currentOperator != null) {
+            currentOperator = operator
+            updateExpressionDisplay()
+            return
+        }
+
+        val inputValue = currentInput.toDoubleOrNull() ?: 0.0
+
+        if (firstOperand == null) {
+            firstOperand = inputValue
+        } else if (currentOperator != null) {
+            val result = calculate(firstOperand!!, inputValue, currentOperator!!)
+            firstOperand = result
+            currentInput = formatNumber(result)
+        }
+
+        currentOperator = operator
+        isNewInput = true
+        updateDisplay()
+    }
+
+    private fun onEqualsClick() {
+        if (firstOperand == null || currentOperator == null) return
+
+        val inputValue = currentInput.toDoubleOrNull() ?: 0.0
+        val result = calculate(firstOperand!!, inputValue, currentOperator!!)
+
+        currentInput = formatNumber(result)
+        firstOperand = null
+        currentOperator = null
+        isNewInput = true
+        updateDisplay()
+    }
+
+    private fun onClearClick() {
         currentInput = "0"
         firstOperand = null
         currentOperator = null
         isNewInput = true
-        lastOperand = null
-        lastOperator = null
-        justEvaluated = false
-        tvExpression.text = ""
         updateDisplay()
     }
 
-    private fun onSignPressed() {
-        if (currentInput != "0") {
-            currentInput = if (currentInput.startsWith("-")) {
-                currentInput.substring(1)
-            } else {
-                "-" + currentInput
-            }
-            updateDisplay()
-        }
-    }
-
-    private fun onPercentPressed() {
-        val value = currentInput.toDoubleOrNull() ?: return
-        val result = value / 100.0
-        currentInput = result.toString()
-        updateDisplay()
-    }
-
-    private fun onOperatorPressed(op: String) {
-        val currentValue = currentInput.toDoubleOrNull() ?: return
-
-        if (firstOperand != null && currentOperator != null && !isNewInput) {
-            val result = calculateResult(firstOperand!!, currentValue, currentOperator!!)
-            firstOperand = result
-            tvExpression.text = "$firstOperand $op"
-            currentInput = result.toString()
-        } else {
-            firstOperand = currentValue
-            tvExpression.text = "$firstOperand $op"
-        }
-
-        currentOperator = op
-        isNewInput = true
-        lastOperator = op
-        lastOperand = currentValue
-        justEvaluated = false
-        updateDisplay()
-    }
-
-    private fun calculateResult(a: Double, b: Double, op: String): Double {
-        return when (op) {
+    private fun calculate(a: Double, b: Double, operator: String): Double {
+        return when (operator) {
             "+" -> a + b
-            "-" -> a - b
+            "−" -> a - b
             "×" -> a * b
-            "÷" -> if (b != 0.0) a / b else Double.NaN
+            "÷" -> if (b == 0.0) Double.NaN else a / b
             else -> b
         }
     }
 
-    private fun onEqualsPressed() {
-        if (firstOperand != null && currentOperator != null) {
-            val secondOperand = currentInput.toDoubleOrNull() ?: return
-            val result = calculateResult(firstOperand!!, secondOperand, currentOperator!!)
-
-            tvExpression.text = "$firstOperand ${currentOperator} $secondOperand ="
-
-            if (result.isNaN()) {
-                currentInput = "Error"
-            } else if (result.isInfinite()) {
-                currentInput = "Error"
-            } else {
-                currentInput = if (result == result.toLong().toDouble()) {
-                    result.toLong().toString()
-                } else {
-                    String.format("%.10g", result).trimEnd('0').trimEnd('.')
-                }
-            }
-
-            lastOperand = firstOperand
-            lastOperator = currentOperator
-            firstOperand = null
-            currentOperator = null
-            isNewInput = true
-            justEvaluated = true
-            updateDisplay()
+    private fun formatNumber(value: Double): String {
+        if (value.isNaN()) return "Error"
+        if (value.isInfinite()) return "Error"
+        // If integer, show without decimal
+        return if (value == value.toLong().toDouble()) {
+            value.toLong().toString()
+        } else {
+            decimalFormat.format(value)
         }
     }
 
     private fun updateDisplay() {
-        tvDisplay.text = currentInput
+        binding.tvDisplay.text = currentInput
+        updateExpressionDisplay()
+    }
+
+    private fun updateExpressionDisplay() {
+        val expression = buildString {
+            if (firstOperand != null && currentOperator != null) {
+                append(formatNumber(firstOperand!!))
+                append(" ")
+                append(currentOperator)
+            }
+        }
+        binding.tvExpression.text = expression
     }
 }
