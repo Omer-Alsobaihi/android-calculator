@@ -17,39 +17,39 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
 
-      - name: Setup Android SDK
-        id: sdk
-        uses: android-actions/setup-android@v3
-        with:
-          cmdline-tools-version: 11076708
-          packages: "platform-tools;platforms;android-34;build-tools;34.0.0"
-
-      - name: Check SDK
+      - name: Install Android SDK
         run: |
-          echo "ANDROID_HOME: ${{ steps.sdk.outputs.android-home }}"
-          ls -la ${{ steps.sdk.outputs.android-home }}/platforms/ 2>/dev/null || echo "No platforms"
-          ls -la ${{ steps.sdk.outputs.android-home }}/build-tools/ 2>/dev/null || echo "No build-tools"
+          apt-get update && apt-get install -y wget unzip
+          export ANDROID_HOME=${HOME}/android-sdk
+          mkdir -p ${ANDROID_HOME}
+          cd /tmp
+          wget -q https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip
+          unzip -q commandlinetools-linux-11076708_latest.zip -d ${ANDROID_HOME}/cmdline-tools
+          mv ${ANDROID_HOME}/cmdline-tools/cmdline-tools ${ANDROID_HOME}/cmdline-tools/latest
+          export PATH=${ANDROID_HOME}/cmdline-tools/latest/bin:${ANDROID_HOME}/platform-tools:${PATH}
+          export ANDROID_HOME=${ANDROID_HOME}
+          yes | sdkmanager --licenses > /dev/null 2>&1 || true
+          sdkmanager "platform-tools" "platforms;android-34" "build-tools;34.0.0" --sdk_root=${ANDROID_HOME} --verbose
 
-      - name: Download Gradle
+      - name: Setup Gradle
         run: |
           curl -sL https://services.gradle.org/distributions/gradle-8.5-bin.zip -o /tmp/gradle.zip
           unzip -q /tmp/gradle.zip -d /opt
           ln -sf /opt/gradle-8.5/bin/gradle /usr/local/bin/gradle
 
-      - name: Generate Gradle wrapper
-        run: |
-          cd $GITHUB_WORKSPACE
-          gradle wrapper --gradle-version 8.5 --no-daemon
-
       - name: Build Debug APK
         env:
-          ANDROID_HOME: ${{ steps.sdk.outputs.android-home }}
+          ANDROID_HOME: ${{ steps.install-sdk.outputs.android-sdk-path }}
         run: |
           cd $GITHUB_WORKSPACE
-          ./gradlew assembleDebug --no-daemon --stacktrace --info
+          gradle wrapper --gradle-version 8.5
+          ./gradlew assembleDebug --no-daemon --stacktrace
+
+      - name: Check APK
+        run: |
+          find . -name "*.apk" -type f
 
       - name: Upload APK
-        if: success()
         uses: actions/upload-artifact@v4
         with:
           name: calculator-debug-apk
