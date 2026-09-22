@@ -44,13 +44,20 @@ jobs:
           echo "=== Build complete ==="
           echo "Exit code: $?"
 
+      - name: Verify APK exists
+        run: |
+          echo "=== APK Search ==="
+          find . -name "*.apk" -type f -exec ls -la {} \; || echo "No APK files found"
+          ls -la app/build/outputs/apk/debug/ 2>/dev/null || echo "No debug output directory"
+
       - name: Upload APK
         if: success()
         uses: actions/upload-artifact@v4
         with:
           name: calculator-debug-apk
           path: |
-            app/build/outputs/apk/debug/app-debug.apk
+            **/*.apk
+            **/build.log
           retention-days: 5
 
       - name: Upload build log on failure
