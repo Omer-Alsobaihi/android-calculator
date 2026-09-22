@@ -77,7 +77,7 @@ class MainActivity : AppCompatActivity() {
             return
         }
 
-        val inputValue = currentInput.toDoubleOrNull() ?: 0.0
+        val inputValue = currentInput.toString().toDoubleOrNull() ?: 0.0
 
         if (firstOperand == null) {
             firstOperand = inputValue
@@ -95,7 +95,7 @@ class MainActivity : AppCompatActivity() {
     private fun onEqualsClick() {
         if (firstOperand == null || currentOperator == null) return
 
-        val inputValue = currentInput.toDoubleOrNull() ?: 0.0
+        val inputValue = currentInput.toString().toDoubleOrNull() ?: 0.0
         val result = calculate(firstOperand!!, inputValue, currentOperator!!)
 
         currentInput = formatNumber(result)
@@ -114,13 +114,14 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun calculate(a: Double, b: Double, operator: String): Double {
-        return when (operator) {
-            "+" -> a + b
-            "−" -> a - b
-            "×" -> a * b
-            "÷" -> if (b == 0.0) Double.NaN else a / b
+        val result: Double = when (operator) {
+            "+" -> (a.toDouble()) + (b.toDouble())
+            "−" -> (a.toDouble()) - (b.toDouble())
+            "×" -> (a.toDouble()) * (b.toDouble())
+            "÷" -> if (b == 0.0) Double.NaN else (a.toDouble()) / (b.toDouble())
             else -> b
         }
+        return result
     }
 
     private fun formatNumber(value: Double): String {
