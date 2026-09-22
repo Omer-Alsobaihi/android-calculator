@@ -54,13 +54,13 @@ class MainActivity : AppCompatActivity() {
                     display.text = value
                     isNewOperand = false
                 } else {
-                    display.text = if (display.text == "0") value else display.text + value
+                    display.text = if (display.text == "0") value else display.text.toString() + value
                 }
                 hasDecimal = false
             }
             "." -> {
                 if (!hasDecimal) {
-                    display.text = display.text + "."
+                    display.text = display.text.toString() + "."
                     hasDecimal = true
                 }
             }
