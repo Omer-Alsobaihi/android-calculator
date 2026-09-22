@@ -1,0 +1,32 @@
+# Built application binaries
+*.apk
+*.aab
+*.ap_
+*.dex
+*.class
+
+# Gradle files
+.gradle/
+build/
+!gradle/wrapper/gradle-wrapper.jar
+
+# Local configuration file
+local.properties
+
+# IDE
+.idea/
+*.iml
+.vscode/
+
+# Keystore
+*.jks
+*.keystore
+
+# MacOS
+.DS_Store
+
+# Android Studio
+captures/
+navigation/
+/*/build/
+*/.cxx/
