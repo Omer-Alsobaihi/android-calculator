@@ -1,10 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="black">#FF000000</color>
-    <color name="white">#FFFFFFFF</color>
-    <color name="blue">#007AFF</color>
-    <color name="orange">#FF9500</color>
-    <color name="red">#FF3B30</color>
-    <color name="gray">#333333</color>
-    <color name="dark_gray">#1E1E1E</color>
+    <color name="operator_color">#FF7A00</color>
+    <color name="function_color">#B0BEC5</color>
+    <color name="equals_color">#00C853</color>
 </resources>
