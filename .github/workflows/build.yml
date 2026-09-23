@@ -32,6 +32,13 @@ jobs:
           packages: 'platform-tools platforms;android-34 build-tools;34.0.0'
           accept-licenses: true
 
+      - name: Verify Kotlin source
+        run: |
+          echo "=== Kotlin files ==="
+          find . -name "*.kt" -type f
+          echo "=== Compiling check ==="
+          ./gradlew compileDebugKotlin --no-daemon --stacktrace 2>&1 | tail -50
+
       - name: Build Debug APK
         env:
           ANDROID_HOME: ${{ env.ANDROID_SDK_ROOT }}
